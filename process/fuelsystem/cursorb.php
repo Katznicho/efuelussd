@@ -1,21 +1,6 @@
 <?php
 
-$ip_address = $_SERVER['REMOTE_ADDR'];
 
-if ($ip_address == '127.0.0.1') {
-	define("DB_PASS", "!Log19tan88");
-	// $this->password = "";
-} else {
-	define("DB_PASS", "!Log19tan88");
-	//$this->password = '!Log10tan10';
-}
-/*
-Please configure this to match your server/database setup.
-*/
-define("DB_HOST", "localhost");
-define("DB_USER", "code");
-define("DB_NAME", "bodacredit");
-//define("DB_PASS", "!Log10tan10");
 
 
 /*
@@ -85,20 +70,41 @@ class Cursorb
 	private $con = null;
 	public $errors = array();
 
+	private $username = "";
+	private $password = "!Log19tan88";
+	private $ip_address = "";
+	private $host ="localhost";
+	private $db_name = "bodacredit";
+
+
 	function __construct()
-	{
-	}
+    {
+        $this->ip_address = $_SERVER['REMOTE_ADDR'];
+
+        if ($this->ip_address == '::1') {
+            $this->ip_address = "";
+            $this->username = "root";
+        } else {
+            $this->username = "code";
+        }
+
+        $this->connect(); // Automatically establish the database connection on object creation
+    }
 
 	private function connect()
-	{
-		if ($this->con != null) return true;
-		try {
-			$this->con = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8', DB_USER, DB_PASS);
-			return true;
-		} catch (PDOException $e) {
-			$this->errors[] .= $e->getMessage();
-		}
-	}
+    {
+        if ($this->con != null) return true;
+        try {
+            $this->con = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->db_name . ';charset=utf8', $this->username, $this->password);
+			 
+            return true;
+        } catch (PDOException $e) {
+			
+			 var_dump($e->getMessage());
+            $this->errors[] = $e->getMessage();
+        }
+        return false;
+    }
 
 	// use e.g. like ["!name"=>"Example name"] to match not equal to.
 	public function select($table, $columns = null, $where = null, $order = null, $limit = null, $where_extra = null)

@@ -1,6 +1,8 @@
 <?php
 
- //include("process.php");
+ 
+
+//include("process.php");
 include_once 'fuelsystem/checker.php';
 $checker=new checker();
 
@@ -17,6 +19,7 @@ elseif($checker->checkAgentexist()==TRUE)
 else
 {
     
+    //echo "hello";
     writeResponse("Your Not Registered on E-Fuel", true);
 }
 
@@ -32,4 +35,4 @@ function writeResponse($msg, $isend = false) {
     echo $resp_msg;
 }
        
-
+//     writeResponse("Welcome Creditplud Boda Loan",true);

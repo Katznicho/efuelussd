@@ -27,6 +27,7 @@ class checker {
     }
     public function checkbodaexist()
     {
+        $this->formatMobile($this->msisdn);
         $count=$this->db->getRows($this->table_boda, ["bodaUserPhoneNumber"], ["bodaUserPhoneNumber"=>$this->formatMobile($this->msisdn)]);
         if($count>0)
         {
