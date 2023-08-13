@@ -46,7 +46,7 @@ class Boda {
         $this->transactionTime = $_POST['transactionTime'];
         $this->msisdn = $_POST['phoneNumber'];
         $this->response = $_POST['response'];
-        $this->requestString = $_POST['text'];
+        $this->requestString = $this->extractInputAfterAsterisk($_POST['text']);
         $this->table_boda = "bodauser";
         $this->pini = new pinb();
         $this->db = new Cursorb();
@@ -64,6 +64,16 @@ class Boda {
         $this->ussd_session = new ussd_sessionb();
         $this->user_session = $this->ussd_session->getByTransactionId($this->transactionId);
         
+    }
+
+    private function extractInputAfterAsterisk($input) {
+        $asteriskPosition = strpos($input, "*");
+    
+        if ($asteriskPosition !== false) {
+            return substr($input, $asteriskPosition + 1);
+        } else {
+            return $input; // Return the original input if no asterisk found
+        }
     }
 
     public function process() {
@@ -148,9 +158,20 @@ class Boda {
         $this->ussd_session->update($data, $this->transactionId);
     }
 
+    function extractDigitsAfterAsterisk($input) {
+        if (preg_match('/\*(\d+)/', $input, $matches)) {
+            return $matches[1];
+        } else {
+            return null; // Return null if no match is found
+        }
+    }
+
     private function resetPinProcess() {
         //Lets reset the pin
         $pin1 = $this->requestString;
+        $pin1 =  $this->extractDigitsAfterAsterisk($pin1);
+        
+        
         if (strlen($pin1) != 5) {
             $this->writeResponse("Pin must have 5 digits");
         }
@@ -164,10 +185,10 @@ class Boda {
         $res = $this->pini->updatePin($this->mobile, $pin1, "boda");
         if ($res == 1) {
 
-            $this->writeResponse("PIN has been changed successfully\r\n*. Back", true);
+            $this->writeResponse("PIN has been changed successfully\n", true);
             return;
         } else {
-            $this->writeResponse("Failed to update user PIN, please contact CreditPlus for help", true);
+            $this->writeResponse("Failed to update user PIN, please contact E-Fuel for help", true);
         }
 
         //we need to delete the session
@@ -184,6 +205,7 @@ class Boda {
         //Lets validate the PIN
 
         $oldpin = $this->requestString;
+       
         if (!$this->pini->validatePin($this->mobile, $this->requestString, "boda")) {
             $this->sessionErrorIncorrectPin();
             return;
@@ -246,7 +268,7 @@ class Boda {
             $interest = $loan["LoanInterest"];
             $loan_penalty = $loan['loan_penalty'];
             $total = $amount + $interest + $loan_penalty;
-            $this->makePayment->initPayment($total, "Pay CreditPlus loan");
+            $this->makePayment->initPayment($total, "Pay E-Fuel loan");
 
             //response
             $menu_text = "Dear ".$this->bodaName."  a payment of shs " . $total . " Has been initiated";
@@ -285,7 +307,7 @@ class Boda {
 
     private function initiatefuel() {
 
-        if (!$this->pini->validatePin($this->mobile, $this->requestString, "boda")) {
+        if (!$this->pini->validatePin($this->mobile, $this->extractDigitsAfterAsterisk($this->requestString), "boda")) {
             $this->sessionErrorIncorrectPin();
             return;
 
@@ -308,10 +330,10 @@ class Boda {
         }
         $data['last_usercode'] = 'generatesecrete';
         $this->ussd_session->update($data, $this->transactionId);
-        $menu_text = "Dear ".$this->bodaName."  your secret code is: " . $secret . " for Fuel of UGX:15,000";
-        $message =  "Your secret Code is" . $secret . " for Fuel of UGX:15,000";
+        $menu_text = "Dear ".$this->bodaName."  your secret code is: " . $secret . " for Fuel of UGX:5,000";
+        $message =  "Your secret Code is" . $secret . " for Fuel of UGX:5,000";
         $this->writeResponse($menu_text, true);
-        //$this->sms->sendsms("creditplus", $this->msisdn, "Your secret Code is" . $secret . " for Fuel of UGX:15,000");
+        //$this->sms->sendsms("E-Fuel", $this->msisdn, "Your secret Code is" . $secret . " for Fuel of UGX:15,000");
         $this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
         
     }

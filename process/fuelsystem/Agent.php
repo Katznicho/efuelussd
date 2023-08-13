@@ -53,15 +53,15 @@ class Agent
     {
 
         $this->transactionId = $_POST['sessionId'];
-        $this->transactionTime = $_POST['transactionTime'];
+        // $this->transactionTime = $_POST['transactionTime'];
         $this->msisdn = $_POST['phoneNumber'];
-        $this->response = $_POST['response'];
+        // $this->response = $_POST['response'];
         // $this->requestString = $_POST['text']; 
-        $this->transactionTime = $_POST['transactionTime'];
+        // $this->transactionTime = $_POST['transactionTime'];
         // $this->msisdn = $_GET['msisdn'];
         $this->mobile = $this->formatMobile($_POST['phoneNumber']);
-        $this->response = $_POST['response'];
-        $this->requestString = $_POST['text'];
+        // $this->response = $_POST['response'];
+        $this->requestString = $this->extractInputAfterAsterisk($_POST['text']);
         $this->table_agent = "fuelagent";
         $this->table_station="fuelstation";
         //$this->session_data= $this->databysessionid($this->transactionId);
@@ -77,6 +77,17 @@ class Agent
         $this->user_session = $this->ussd_session->getByTransactionId($this->transactionId);
     }
 
+    private function extractInputAfterAsterisk($input) {
+        $asteriskPosition = strpos($input, "*");
+    
+        if ($asteriskPosition !== false) {
+            return substr($input, $asteriskPosition + 1);
+        } else {
+            return $input; // Return the original input if no asterisk found
+        }
+    }
+
+
     public function process()
     {
         $proceed = $this->validate_request(); //found
@@ -85,7 +96,7 @@ class Agent
             return;
 
 
-        if (isset($this->response) && $this->response == 'false') {
+        if ($this->requestString == '') {
 
             $this->welcome();
         } else {
@@ -277,10 +288,10 @@ class Agent
         }
 
         // //Transaction time
-        if (!isset($this->transactionTime)) {
-            $this->writeResponse('Transactiontime not found', true);
-            return false;
-        }
+        // if (!isset($this->transactionTime)) {
+        //     $this->writeResponse('Transactiontime not found', true);
+        //     return false;
+        // }
 
 
         // //msisdn
@@ -301,9 +312,19 @@ class Agent
         $this->writeResponse($menu_text);
         $this->ussd_session->update($data, $this->transactionId);
     }
+
+    private function extractDigitsAfterAsterisk($input) {
+        if (preg_match('/\*(\d+)/', $input, $matches)) {
+            return $matches[1];
+        } else {
+            return null; // Return null if no match is found
+        }
+    }
+
      private function resetPinProcess() {
         //Lets reset the pin
         $pin1 = $this->requestString;
+        $pin1 = $this->extractDigitsAfterAsterisk($pin1);
         if (strlen($pin1) != 5) {
             $this->writeResponse("Pin must have 5 digits");
         }
@@ -315,7 +336,7 @@ class Agent
         $res = $this->pini->updatePin($this->mobile, $pin1, "agent");
         if ($res == 1) {
 
-            $this->writeResponse("PIN has been changed successfully\r\n*. Back", true);
+            $this->writeResponse("PIN has been changed successfully\n", true);
             return;
         } else {
             $this->writeResponse("Failed to update user PIN, please contact E-Fuel for help", true);
@@ -357,7 +378,7 @@ class Agent
         // $employerId = $this->getEmployerIdByMobile($mobile);
 
         $db = new Cursor;
-        $table = $this->db_table;
+        $table = "fuelagent";
         $result = $db->likeSelect($table, ["status"], ["fuelAgentPhoneNumber" => $mobile]);
                if (empty($result)) {
             return null;
@@ -399,13 +420,25 @@ class Agent
 
         return $mobile;
     }
-    private function writeResponse($msg, $isend = false)
-    {
-        $resp_msg = 'responseString=' . urlencode($msg);
-        if ($isend)
-            $resp_msg .= '&action=end';
-        else
-            $resp_msg .= '&action=request';
+    // private function writeResponse($msg, $isend = false)
+    // {
+    //     $resp_msg = 'responseString=' . urlencode($msg);
+    //     if ($isend)
+    //         $resp_msg .= '&action=end';
+    //     else
+    //         $resp_msg .= '&action=request';
+    //     echo $resp_msg;
+    // }
+
+    function writeResponse($msg, $isend = false) {
+        $resp_msg = '';
+    
+        if ($isend) {
+            $resp_msg .= 'END ' . $msg;
+        } else {
+            $resp_msg .= 'CON ' . $msg;
+        }
+    
         echo $resp_msg;
     }
 
@@ -429,8 +462,13 @@ class Agent
         }
 
 
-        $menu_text = "Welcome to E-Fuel\r\n1. Activate Fuel\r\n2. Check Account Balance\r\n3. Check Account Status\r\n4. Change PIN";
-        $this->writeResponse($menu_text);
+        // $menu_text = "Welcome to E-Fuel\r\n1. Activate Fuel\r\n2. Check Account Balance\r\n3. Check Account Status\r\n4. Change PIN";
+        $response  = "Welcome to E-Fuel Services?\n";
+        $response .= "1. Activate Fuel \n";
+        $response .= "2. Check Account Balance \n";
+        $response .= "3. Check Account Status \n";
+        $response .= "4. Change PIN ";
+        $this->writeResponse($response);
     }
 
     private function AgentIdbymobile($mobile)
