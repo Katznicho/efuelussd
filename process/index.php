@@ -1,35 +1,35 @@
 <?php
 
- 
+// Include necessary files and classes
 
-//include("process.php");
-// include_once 'fuelsystem/checker.php';
-// $checker=new checker();
+// Define your writeResponse function
+function writeResponse($msg, $isend = false) {
+    $resp_msg = '';
 
-// if($checker->checkbodaexist()==TRUE)
-// {
-//    // echo "welcome Boda";
+    if ($isend) {
+        $resp_msg .= 'END ' . urlencode($msg);
+    } else {
+        $resp_msg .= 'CON ' . urlencode($msg);
+    }
+
+    echo $resp_msg;
+}
+
+// Your existing logic to determine which section to include
+
+// Uncomment and modify the section you want to include
+// if ($checker->checkbodaexist() == TRUE) {
 //     include("fuelsystem/Boda.php");
-    
-// }
-// elseif($checker->checkAgentexist()==TRUE)
-// {
-//     include("fuelsystem/Agent.php"); 
-// }
-// else
-// {
-    
-//     //echo "hello";
-//     include("process.php"); 
+// } elseif ($checker->checkAgentexist() == TRUE) {
+//     include("fuelsystem/Agent.php");
+// } else {
+//     include("process.php");
 // }
 
- function writeResponse($msg,$isend = false){
-		$resp_msg = 'responseString='.urlencode($msg);
-		 if($isend)
-		 	$resp_msg .= '&action=end';
-		 else
-			$resp_msg .= '&action=request';
-         echo $resp_msg;
-	}
-       
-    writeResponse("Welcome Creditplud Boda Loan",true);
+// Use writeResponse to send the appropriate message
+// For example, sending a continuation message:
+// writeResponse("Please select an option:\n1. Check Balance\n2. Make a Payment");
+
+// Sending an ending message:
+writeResponse("Welcome Creditplud Boda Loan", true);
+?>
