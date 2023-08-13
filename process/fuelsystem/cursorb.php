@@ -13,7 +13,7 @@ if ($ip_address == '127.0.0.1') {
 Please configure this to match your server/database setup.
 */
 define("DB_HOST", "localhost");
-define("DB_USER", "root");
+define("DB_USER", "code");
 define("DB_NAME", "bodacredit");
 //define("DB_PASS", "!Log10tan10");
 

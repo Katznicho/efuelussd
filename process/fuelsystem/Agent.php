@@ -245,8 +245,8 @@ class Agent
         $loanid = $this->loanb->createloan($loan);
         if ($loanid > 0) {
             $menu_text = "Fuel of UGX: 15,000 to " . $boda[0]["bodaUserName"] . "  " . $boda[0]["bodaUserBodaNumber"] . " " . "has been activated";
-            $this->sms->sendsms("creditplus ", $this->msisdn, "You Have aproved fuel of UGX: 15,000/= for Boda user " . $boda[0]["bodaUserName"] . " with loanId Cb" . $loanid);
-            $this->sms->sendsms("creditplus ", $this->formatMobileInternational($bodanumber), "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 15,000 with loanId Cb" . $loanid . "payment of UGX: 16,000 is expected before Midnight Thank you");
+            $this->sms->sendsms("E-Fuel ", $this->msisdn, "You Have aproved fuel of UGX: 15,000/= for Boda user " . $boda[0]["bodaUserName"] . " with loanId Cb" . $loanid);
+            $this->sms->sendsms("E-Fuel ", $this->formatMobileInternational($bodanumber), "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 15,000 with loanId Cb" . $loanid . "payment of UGX: 16,000 is expected before Midnight Thank you");
             $data['last_usercode'] = 'Fuel';
             $this->ussd_session->update($data, $this->transactionId);
             $result=$this->loanb->updatebodastatus($bodanumber);
@@ -255,7 +255,7 @@ class Agent
             $this->writeResponse($menu_text, true);
             return;
         } else {
-            $this->sms->sendsms("creditplus", $this->msisdn, "Sorry something went wrong and loan was not aproved");
+            $this->sms->sendsms("E-Fuel", $this->msisdn, "Sorry something went wrong and loan was not aproved");
             $menu_text = "Something went wrong and loan was not aprooved";
             $this->writeResponse($menu_text, true);
             return;
@@ -313,7 +313,7 @@ class Agent
             $this->writeResponse("PIN has been changed successfully\r\n*. Back", true);
             return;
         } else {
-            $this->writeResponse("Failed to update user PIN, please contact CreditPlus for help", true);
+            $this->writeResponse("Failed to update user PIN, please contact E-Fuel for help", true);
         }
 
         //we need to delete the session
@@ -424,7 +424,7 @@ class Agent
         }
 
 
-        $menu_text = "Welcome to CreditPlus\r\n1. Activate Fuel\r\n2. Check Account Balance\r\n3. Check Account Status\r\n4. Change PIN";
+        $menu_text = "Welcome to E-Fuel\r\n1. Activate Fuel\r\n2. Check Account Balance\r\n3. Check Account Status\r\n4. Change PIN";
         $this->writeResponse($menu_text);
     }
 

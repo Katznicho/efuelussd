@@ -5,7 +5,7 @@
 // ------------------------
 
 $db['host'] = "127.0.0.1";
-$db['user'] = "root";
+$db['user'] = "code";
 $db['pass'] = "!Log10tan10";
 $db['name'] = "creditplus1";
 

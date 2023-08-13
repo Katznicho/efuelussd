@@ -275,7 +275,7 @@ class Boda {
     //check loan amount
 
     private function selectfuelpackage() {
-        $menu_text = "Select Package\r\n1. Akeendo(15,000)";
+        $menu_text = "Select Package\r\n1. Akeendo(5,000)";
 
         $data['last_usercode'] = 'packages';
         $this->ussd_session->update($data, $this->transactionId);
@@ -474,7 +474,7 @@ class Boda {
             $this->ussd_session->insert($data);
         }
 
-        $menu_text = "Welcome to CreditPlus\r\n1. Request Fuel Loan\r\n2. Check Account Status \r\n3. Payback Loan\r\n4. Change PIN";
+        $menu_text = "Welcome to E-Fuel\r\n1. Request Fuel Loan\r\n2. Check Account Status \r\n3. Payback Loan\r\n4. Change PIN";
         $this->writeResponse($menu_text);
     }
    
