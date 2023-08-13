@@ -8,7 +8,7 @@ $checker=new checker();
 
 if($checker->checkbodaexist()==TRUE)
 {
-   // echo "welcome Boda";
+//    echo "welcome Boda";
     include("fuelsystem/Boda.php");
     
 }

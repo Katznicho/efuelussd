@@ -41,17 +41,18 @@ class Boda {
 
     public function __construct() {
        
-        $this->transactionId = $_GET['transactionId'];
-        $this->transactionTime = $_GET['transactionTime'];
-        $this->msisdn = $_GET['msisdn'];
-        $this->response = $_GET['response'];
-        $this->requestString = $_GET['ussdRequestString'];
+        //  var_dump($_POST);
+        $this->transactionId = $_POST['sessionId'];
+        $this->transactionTime = $_POST['transactionTime'];
+        $this->msisdn = $_POST['phoneNumber'];
+        $this->response = $_POST['response'];
+        $this->requestString = $_POST['text'];
         $this->table_boda = "bodauser";
         $this->pini = new pinb();
         $this->db = new Cursorb();
         $this->sms = new smsb();
         $this->stage = new stage();
-        $this->mobile = $this->formatMobile($_GET['msisdn']);
+        $this->mobile = $this->formatMobile($_POST['phoneNumber']);
         $this->secret = new secret();
         $this->stageid = $this->getstageidbymobile($this->mobile);
         $this->loan = new loanb();
@@ -73,8 +74,8 @@ class Boda {
             return;
 
 
-        if (isset($this->response) && $this->response == 'false') {
-
+        if ($this->requestString == '') {
+              
             $this->welcome();
         } else {
 
@@ -356,10 +357,10 @@ class Boda {
         }
 
         // //Transaction time
-        if (!isset($this->transactionTime)) {
-            $this->writeResponse('Transactiontime not found', true);
-            return false;
-        }
+        // if (!isset($this->transactionTime)) {
+        //     $this->writeResponse('Transactiontime not found', true);
+        //     return false;
+        // }
 
 
         // //msisdn
@@ -448,17 +449,41 @@ class Boda {
         return $mobile;
     }
 
-    private function writeResponse($msg, $isend = false) {
-        $resp_msg = 'responseString=' . urlencode($msg);
-        if ($isend)
-            $resp_msg .= '&action=end';
-        else
-            $resp_msg .= '&action=request';
+    // private function writeResponse($msg, $isend = false) {
+    //     $resp_msg = 'responseString=' . urlencode($msg);
+    //     if ($isend)
+    //         $resp_msg .= '&action=end';
+    //     else
+    //         $resp_msg .= '&action=request';
+    //     echo $resp_msg;
+    // }
+    // private function writeResponse($msg, $isend = false) {
+    //     $resp_msg = '';
+    
+    //     if ($isend) {
+    //         $resp_msg .= 'END ' . urlencode($msg);
+    //     } else {
+    //         $resp_msg .= 'CON ' . urlencode($msg);
+    //     }
+    
+    //     echo $resp_msg;
+    // }
+
+    function writeResponse($msg, $isend = false) {
+        $resp_msg = '';
+    
+        if ($isend) {
+            $resp_msg .= 'END ' . $msg;
+        } else {
+            $resp_msg .= 'CON ' . $msg;
+        }
+    
         echo $resp_msg;
     }
 
-    private function welcome_general($from_activation = true) {
 
+    private function welcome_general($from_activation = true) {
+          
         if ($from_activation == true) {
 
             $data['last_usercode'] = '00';
@@ -474,8 +499,17 @@ class Boda {
             $this->ussd_session->insert($data);
         }
 
-        $menu_text = "Welcome to E-Fuel\r\n1. Request Fuel Loan\r\n2. Check Account Status \r\n3. Payback Loan\r\n4. Change PIN";
-        $this->writeResponse($menu_text);
+
+        $response  = "Welcome to E-Fuel Services?\n";
+        $response .= "1. Request Fuel \n";
+        $response .= "2. Check Account Status \n";
+        $response .= "3. Payback Loan \n";
+        $response .= "4. Change PIN ";
+
+
+        // echo $response;
+
+        $this->writeResponse($response, false);
     }
    
     private function BodaIdbymobile($mobile) {

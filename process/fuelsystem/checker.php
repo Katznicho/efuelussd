@@ -18,8 +18,9 @@ class checker {
     private $table_boda;
     private $table_agent;
      public function __construct() {
+        // var_dump($_POST['phoneNumber']);
         $this->db=new Cursorb();
-        $this->msisdn=$_GET['msisdn'];
+        $this->msisdn= $_POST['phoneNumber'];
         $this->table_boda="bodauser";
         $this->table_agent="fuelagent";
         
@@ -27,10 +28,13 @@ class checker {
     }
     public function checkbodaexist()
     {
-        $this->formatMobile($this->msisdn);
+        $num = $this->formatMobile($this->msisdn);
+         //var_dump($num);
         $count=$this->db->getRows($this->table_boda, ["bodaUserPhoneNumber"], ["bodaUserPhoneNumber"=>$this->formatMobile($this->msisdn)]);
-        if($count>0)
-        {
+        
+       
+        if($count)
+        { 
             return true;
         }
         else

@@ -100,7 +100,7 @@ class Cursorb
             return true;
         } catch (PDOException $e) {
 			
-			 var_dump($e->getMessage());
+			 //echo $e->getMessage();
             $this->errors[] = $e->getMessage();
         }
         return false;

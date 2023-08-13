@@ -51,12 +51,17 @@ class Agent
 
     public function __construct()
     {
-        $this->transactionId = $_GET['transactionId'];
-        $this->transactionTime = $_GET['transactionTime'];
-        $this->msisdn = $_GET['msisdn'];
-        $this->mobile = $this->formatMobile($_GET['msisdn']);
-        $this->response = $_GET['response'];
-        $this->requestString = $_GET['ussdRequestString'];
+
+        $this->transactionId = $_POST['sessionId'];
+        $this->transactionTime = $_POST['transactionTime'];
+        $this->msisdn = $_POST['phoneNumber'];
+        $this->response = $_POST['response'];
+        // $this->requestString = $_POST['text']; 
+        $this->transactionTime = $_POST['transactionTime'];
+        // $this->msisdn = $_GET['msisdn'];
+        $this->mobile = $this->formatMobile($_POST['phoneNumber']);
+        $this->response = $_POST['response'];
+        $this->requestString = $_POST['text'];
         $this->table_agent = "fuelagent";
         $this->table_station="fuelstation";
         //$this->session_data= $this->databysessionid($this->transactionId);
