@@ -492,19 +492,19 @@ class Boda {
         }
     }
 
-    private function Bodafuelstationidbymobile($mobile) {
-        $result = $this->db->select($this->table_boda, ["fuelStationId"], ["bodaUserPhoneNumber" => $mobile]);
+    // private function Bodafuelstationidbymobile($mobile) {
+    //     $result = $this->db->select($this->table_boda, ["fuelStationId"], ["bodaUserPhoneNumber" => $mobile]);
 
-        if (empty($result)) {
-            return null;
-        } else {
-            foreach ($result as $boda) {
+    //     if (empty($result)) {
+    //         return null;
+    //     } else {
+    //         foreach ($result as $boda) {
 
-                $bodastationId = $agent["fuelStationId"];
-            }
-            return $bodastationId;
-        }
-    }
+    //             $bodastationId = $agent["fuelStationId"];
+    //         }
+    //         return $bodastationId;
+    //     }
+    // }
 
 
 
