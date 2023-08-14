@@ -255,12 +255,13 @@ class Boda {
     //verify pin 
     private function verifyPin() {
         $data['last_usercode'] = 'initiatedPayment';
-        if (!$this->requestString == '1') {
+        if (!$this->requestString == '1' || !$this->requestString == '2' ) {
             $this->sessionError();
             return;
 
             //return;
         }
+        //show  different payment options
         //make payment
         $loan = $this->loan->getLatestUnpaidLoan($this->mobile);
         if ($loan != NULL) {
@@ -286,8 +287,12 @@ class Boda {
             $interest = $loan["LoanInterest"];
             $loan_penalty = $loan['loan_penalty'];
             $total = $amount + $interest + $loan_penalty;
-            $menu_text = "Dear ".$this->bodaName."  you have a loan of shs " . $total . "Press 1 to Initiate Payment";
-            $this->writeResponse($menu_text);
+            $response = "Dear ".$this->bodaName."  you have a loan of shs " . $total . "";
+            $response .= "\nSelect Payment Option\n";
+            $response .= "1. Mobile Money\n";
+            $response .= "2. Mojaloop\n";
+            
+            $this->writeResponse($response);
         } else {
             $menu_text = "You have no loan";
             $this->writeResponse($menu_text, true);
@@ -321,7 +326,7 @@ class Boda {
             $this->sessionErrornotactivatedstage();
             return;
         }
-        $secret = ($this->secret->createsecret($this->mobile, 15000));
+        $secret = ($this->secret->createsecret($this->mobile, 5000));
         if (!isset($secret)) {
             //echo $secret;
             $this->Errorsecretnotcreated();
@@ -334,7 +339,7 @@ class Boda {
         $message =  "Your secret Code is" . $secret . " for Fuel of UGX:5,000";
         $this->writeResponse($menu_text, true);
         //$this->sms->sendsms("E-Fuel", $this->msisdn, "Your secret Code is" . $secret . " for Fuel of UGX:15,000");
-        $this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
+        //$this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
         
     }
 

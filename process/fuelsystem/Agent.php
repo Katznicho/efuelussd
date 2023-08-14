@@ -18,10 +18,10 @@ include_once("smsb.php");
 include_once('secret.php');
 include_once('pinib.php');
 include_once('loanb.php');
-include_once ('FloatDeposits.php');
+include_once('FloatDeposits.php');
 class Agent
 {
-    
+
     private $transactionId;
     private $transactionTime;
     private $msisdn;
@@ -63,7 +63,7 @@ class Agent
         // $this->response = $_POST['response'];
         $this->requestString = $this->extractInputAfterAsterisk($_POST['text']);
         $this->table_agent = "fuelagent";
-        $this->table_station="fuelstation";
+        $this->table_station = "fuelstation";
         //$this->session_data= $this->databysessionid($this->transactionId);
         $this->pini = new pinb();
         $this->db = new Cursorb();
@@ -72,14 +72,15 @@ class Agent
         $this->loanb = new loanb();
         $this->table_boda = "bodauser";
         $this->ussd_session = new ussd_sessionb();
-        $this->deposits= new FloatDeposits();
-        $this->stationId=$this->Agentfuelstationidbymobile();
+        $this->deposits = new FloatDeposits();
+        $this->stationId = $this->Agentfuelstationidbymobile();
         $this->user_session = $this->ussd_session->getByTransactionId($this->transactionId);
     }
 
-    private function extractInputAfterAsterisk($input) {
+    private function extractInputAfterAsterisk($input)
+    {
         $asteriskPosition = strpos($input, "*");
-    
+
         if ($asteriskPosition !== false) {
             return substr($input, $asteriskPosition + 1);
         } else {
@@ -119,18 +120,16 @@ class Agent
                     } else if ($this->requestString == '2') {
                         //Check float Balance 
                         $this->displayfloatbalance();
-
                     } else if ($this->requestString == '3') {
-                       // $this->resetPin();
-                      $this->displaystationstatus();
+                        // $this->resetPin();
+                        $this->displaystationstatus();
                         // $this->writeResponse('change Pin',true);
 
-                    }
-                    else if ($this->requestString == '4') {
+                    } else if ($this->requestString == '4') {
                         $this->resetPin();
                         // $this->writeResponse('change Pin',true);
 
-                    }else {
+                    } else {
                         $this->welcome_general(true);
                     }
                     break;
@@ -170,7 +169,7 @@ class Agent
 
         $data['last_usercode'] = 'requestSecret';
         $data['phone'] = $this->requestString;
-        $menu_text = "Please Enter Boda SecretCode";
+        $menu_text = "Please Enter Boda SecretCode\n";
         $this->ussd_session->update($data, $this->transactionId);
         $this->writeResponse($menu_text);
         // $this->advancemonthroute();
@@ -187,7 +186,13 @@ class Agent
 
         $session_data = $this->ussd_session->databysessionid($this->transactionId);
         $bodanumber = $session_data[0]["phone"];
-        $secret = $this->requestString;
+        $secret = $this->extractDigitsAfterAsterisk($this->requestString);
+
+        // echo $secret;
+
+        // die("secret");
+
+
         $boda = $this->bodabymobile($bodanumber);
         // print_r($boda);
         $data['last_usercode'] = 'verifysecret';
@@ -213,61 +218,64 @@ class Agent
             return FALSE;
         }
         $this->secret->updatesecret($secret, $this->mobile);
-        $menu_text = "Fuel of UGX: 15,000 to " . $name . "  " . $morto . " " . "Enter PIN to Comfirm";
+        $menu_text = "Fuel of UGX: 5,000 to " . $name . "  " . $morto . " " . " \n Enter PIN to Confirm";
         $this->ussd_session->update($data, $this->transactionId);
         $this->writeResponse($menu_text);
     }
 
     public function updateStationAmoun($amount, $stationId)
     {
-         //first get the current amount
-        $currentAmount = $this->db->select($this->table_station, ["currentAmount"], ["fuelStationId" => $stationId])[0]["currentAmount"]; 
-        $newAmount =  intval($currentAmount)- intval($amount);
+        //first get the current amount
+        $currentAmount = $this->db->select($this->table_station, ["currentAmount"], ["fuelStationId" => $stationId])[0]["currentAmount"];
+        $newAmount =  intval($currentAmount) - intval($amount);
         $this->db->update($this->table_station, ["currentAmount" => $newAmount], ["fuelStationId" => $stationId]);
         return true;
     }
     private function processfuel()
     {
 
+        //  echo $this->requestString;
+        // $res = $this->extractDigitsAfterAsterisk($this->requestString);
 
-        if (!$this->pini->validatePin($this->mobile, $this->requestString, "Agent")) {
+          $parts = explode('*', $this->requestString);
+         $lastPart = end($parts);
+          
+        
+
+        if (!$this->pini->validatePin($this->mobile, $lastPart, "Agent")) {
             $this->sessionErrorIncorrectPin();
             return;
 
-            //return;
         }
-        
+
         $session_data = $this->ussd_session->databysessionid($this->transactionId);
         $bodanumber = $session_data[0]["phone"];
         $boda = $this->bodabymobile($bodanumber);
-        $interest=1000;
-        if($boda[0]["bodaUserRole"]=="BODA USER")
-        {
-            $interest=1000;
-        }
-        else
-        {
-            $interest=1000;
+        $interest = 1000;
+        if ($boda[0]["bodaUserRole"] == "BODA USER") {
+            $interest = 1000;
+        } else {
+            $interest = 1000;
         }
         $loan = array();
-        $loan["LoanInterest"]=$interest;
-        $loan["loanAmount"] = 15000;
+        $loan["LoanInterest"] = $interest;
+        $loan["loanAmount"] = 5000;
         $loan["boadUserId"] = $bodanumber;
         $loan["fuelSationId"] = $boda[0]["fuelStationId"];
         $loan["agentId"] = $this->mobile;
         $loan["stageId"] = $boda[0]["stageId"];
         // $loan["loanRef"] = $this->pini->hashPass($this->pini->randomkey(10)); 
-        $loan["loanRef"] =  time().rand(1000,9999); 
+        $loan["loanRef"] =  time() . rand(1000, 9999);
         $loanid = $this->loanb->createloan($loan);
         if ($loanid > 0) {
-            $menu_text = "Fuel of UGX: 15,000 to " . $boda[0]["bodaUserName"] . "  " . $boda[0]["bodaUserBodaNumber"] . " " . "has been activated";
-            $this->sms->sendsms("E-Fuel ", $this->msisdn, "You Have aproved fuel of UGX: 15,000/= for Boda user " . $boda[0]["bodaUserName"] . " with loanId Cb" . $loanid);
-            $this->sms->sendsms("E-Fuel ", $this->formatMobileInternational($bodanumber), "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 15,000 with loanId Cb" . $loanid . "payment of UGX: 16,000 is expected before Midnight Thank you");
+            $menu_text = "Fuel of UGX: 5,000 to " . $boda[0]["bodaUserName"] . "  " . $boda[0]["bodaUserBodaNumber"] . " " . "has been activated";
+            //$this->sms->sendsms("E-Fuel ", $this->msisdn, "You Have aproved fuel of UGX: 5,000/= for Boda user " . $boda[0]["bodaUserName"] . " with loanId Cb" . $loanid);
+            //$this->sms->sendsms("E-Fuel ", $this->formatMobileInternational($bodanumber), "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 15,000 with loanId Cb" . $loanid . "payment of UGX: 16,000 is expected before Midnight Thank you");
             $data['last_usercode'] = 'Fuel';
             $this->ussd_session->update($data, $this->transactionId);
-            $result=$this->loanb->updatebodastatus($bodanumber);
-              //update fuel station current balance
-            $this->updateStationAmoun(15000,$boda[0]["fuelStationId"]);
+            $result = $this->loanb->updatebodastatus($bodanumber);
+            //update fuel station current balance
+            $this->updateStationAmoun(15000, $boda[0]["fuelStationId"]);
             $this->writeResponse($menu_text, true);
             return;
         } else {
@@ -304,7 +312,8 @@ class Agent
 
         return true;
     }
-    private function resetPin() {
+    private function resetPin()
+    {
         //$ussd_session = new ussd_session();
         $data['last_usercode'] = 'OldPin';
         //Lets write a response
@@ -313,7 +322,8 @@ class Agent
         $this->ussd_session->update($data, $this->transactionId);
     }
 
-    private function extractDigitsAfterAsterisk($input) {
+    private function extractDigitsAfterAsterisk($input)
+    {
         if (preg_match('/\*(\d+)/', $input, $matches)) {
             return $matches[1];
         } else {
@@ -321,7 +331,8 @@ class Agent
         }
     }
 
-     private function resetPinProcess() {
+    private function resetPinProcess()
+    {
         //Lets reset the pin
         $pin1 = $this->requestString;
         $pin1 = $this->extractDigitsAfterAsterisk($pin1);
@@ -351,7 +362,8 @@ class Agent
         $this->ussd_session->update($data, $this->transactionId);
     }
 
-    private function resetPinValidate() {
+    private function resetPinValidate()
+    {
 
         //Lets validate the PIN
 
@@ -372,7 +384,7 @@ class Agent
     }
 
     // //method to check if the number is activated
-//  
+    //  
     public function AgentStatus($mobile)
     {
         // $employerId = $this->getEmployerIdByMobile($mobile);
@@ -380,7 +392,7 @@ class Agent
         $db = new Cursor;
         $table = "fuelagent";
         $result = $db->likeSelect($table, ["status"], ["fuelAgentPhoneNumber" => $mobile]);
-               if (empty($result)) {
+        if (empty($result)) {
             return null;
         } else {
             foreach ($result as $session) {
@@ -430,15 +442,16 @@ class Agent
     //     echo $resp_msg;
     // }
 
-    function writeResponse($msg, $isend = false) {
+    function writeResponse($msg, $isend = false)
+    {
         $resp_msg = '';
-    
+
         if ($isend) {
             $resp_msg .= 'END ' . $msg;
         } else {
             $resp_msg .= 'CON ' . $msg;
         }
-    
+
         echo $resp_msg;
     }
 
@@ -502,84 +515,67 @@ class Agent
     }
     function displaystationstatus()
     {
-        $status=$this->getstationstatus();
-        $statusmessage=null;
-        if($status==null)
-        {
-            $this->writeResponse("Status unknown -error 000",true);
+        $status = $this->getstationstatus();
+        $statusmessage = null;
+        if ($status == null) {
+            $this->writeResponse("Status unknown -error 000", true);
             return null;
+        } else {
+            if ($status == 0) {
+                $statusmessage = "inactive";
+            }
+            if ($status == 1) {
+                $statusmessage = "Active";
+            }
+            if ($status == 2) {
+                $statusmessage = "switched Off";
+            }
+            if ($status == 3) {
+                $statusmessage = "suspended";
+            }
         }
-        else
-        {
-            if($status==0)
-            {
-                $statusmessage="inactive";
-             
-            }
-            if($status==1)
-            {
-                $statusmessage="Active";
-            }
-             if($status==2)
-            {
-                $statusmessage="switched Off";
-            }
-              if($status==3)
-            {
-                $statusmessage="suspended";
-            }
-            
-                    
-        }
-        $this->writeResponse("Your account is :".$statusmessage, true);
+        $this->writeResponse("Your account is :" . $statusmessage, true);
         $data['last_usercode'] = 'displaystationstatus';
-            //$data['last_usercode']="send_menu";
+        //$data['last_usercode']="send_menu";
 
-      $this->ussd_session->update($data, $this->transactionId);
-      return;
+        $this->ussd_session->update($data, $this->transactionId);
+        return;
     }
 
     private function getstationstatus()
     {
-        $result= $this->db->select($this->table_station,["fuelStationStatus"], ["fuelStationId"=>$this->stationId])[0];
-         if (count($result)) 
-                {
+        $result = $this->db->select($this->table_station, ["fuelStationStatus"], ["fuelStationId" => $this->stationId])[0];
+        if (count($result)) {
             return $result["fuelStationStatus"];
-                } 
-                else {
-                    return null;
-                }
-        
+        } else {
+            return null;
+        }
     }
 
     private function floatbalance()
     {
-     
-        $totaldeposits=$this->deposits->getAllTimeTotalDepossitsOfstation($this->stationId);
-        $totalloans=$this->loanb->getAmountsumofallloansoffuelstaion($this->stationId);
-        $balance=$totaldeposits-$totalloans;
-        if($balance)
-        {
-            
+
+        $totaldeposits = $this->deposits->getAllTimeTotalDepossitsOfstation($this->stationId);
+        $totalloans = $this->loanb->getAmountsumofallloansoffuelstaion($this->stationId);
+        $balance = $totaldeposits - $totalloans;
+        if ($balance) {
+
             return $balance;
-        }
-        else
-        {
+        } else {
             return 0;
         }
-        
     }
-private function displayfloatbalance()
-{
-    
-    $this->writeResponse("Account balance is UGX: ".$this->floatbalance(), true);
-    
-      $data['last_usercode'] = 'displaybalance';
-            //$data['last_usercode']="send_menu";
+    private function displayfloatbalance()
+    {
 
-      $this->ussd_session->update($data, $this->transactionId);
-      return;
-}
+        $this->writeResponse("Account balance is UGX: " . $this->floatbalance(), true);
+
+        $data['last_usercode'] = 'displaybalance';
+        //$data['last_usercode']="send_menu";
+
+        $this->ussd_session->update($data, $this->transactionId);
+        return;
+    }
 
     private function sessionErrorIncorrectPin()
     {
