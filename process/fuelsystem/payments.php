@@ -8,7 +8,7 @@ class payments
     private  $withdraw_url = 'https://wallet.ssentezo.com/api/withdraw';
     private  $username = "611b26c4-2c6c-407c-ae24-c86029434b04";
     private  $password = "0b7062a15fc9a8417d25be8bcfde11ac";
-    private $sucessRedirectLink = "http://207.154.233.21/efuelussd/views/payments/finished.php";
+    private $sucessRedirectLink = "http://207.154.233.21/efuelwebapp/views/payments/finished.php";
 
 
 
