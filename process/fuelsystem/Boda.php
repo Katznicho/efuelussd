@@ -14,7 +14,8 @@ include_once('secret.php');
 include_once("loanb.php");
 include_once("MakePayment.php");
 
-class Boda {
+class Boda
+{
 
     private $transactionId;
     private $transactionTime;
@@ -39,8 +40,9 @@ class Boda {
     //private $pini;
 
 
-    public function __construct() {
-       
+    public function __construct()
+    {
+
         //  var_dump($_POST);
         $this->transactionId = $_POST['sessionId'];
         $this->transactionTime = $_POST['transactionTime'];
@@ -58,17 +60,17 @@ class Boda {
         $this->loan = new loanb();
         // die("into boda constructor");
         $this->makePayment = new MakePayments($this->msisdn, $this->mobile);
-        
-        $this->bodaName= $this->bodabymobile()["bodaUserName"];
-        
+
+        $this->bodaName = $this->bodabymobile()["bodaUserName"];
+
         $this->ussd_session = new ussd_sessionb();
         $this->user_session = $this->ussd_session->getByTransactionId($this->transactionId);
-        
     }
 
-    private function extractInputAfterAsterisk($input) {
+    private function extractInputAfterAsterisk($input)
+    {
         $asteriskPosition = strpos($input, "*");
-    
+
         if ($asteriskPosition !== false) {
             return substr($input, $asteriskPosition + 1);
         } else {
@@ -76,16 +78,17 @@ class Boda {
         }
     }
 
-    public function process() {
+    public function process()
+    {
         $proceed = $this->validate_request(); //found
-        
+
 
         if (!$proceed)
             return;
 
 
         if ($this->requestString == '') {
-              
+
             $this->welcome();
         } else {
 
@@ -109,7 +112,7 @@ class Boda {
                         //$this->db->
                         $this->checkLoanAmount();
                         //retrieve latest loan
-                    //
+                        //
 
                     } else if ($this->requestString == '4') {
                         //ask for old pin
@@ -149,7 +152,8 @@ class Boda {
         }
     }
 
-    private function resetPin() {
+    private function resetPin()
+    {
         //$ussd_session = new ussd_session();
         $data['last_usercode'] = 'OldPin';
         //Lets write a response
@@ -158,7 +162,8 @@ class Boda {
         $this->ussd_session->update($data, $this->transactionId);
     }
 
-    function extractDigitsAfterAsterisk($input) {
+    function extractDigitsAfterAsterisk($input)
+    {
         if (preg_match('/\*(\d+)/', $input, $matches)) {
             return $matches[1];
         } else {
@@ -166,12 +171,13 @@ class Boda {
         }
     }
 
-    private function resetPinProcess() {
+    private function resetPinProcess()
+    {
         //Lets reset the pin
         $pin1 = $this->requestString;
         $pin1 =  $this->extractDigitsAfterAsterisk($pin1);
-        
-        
+
+
         if (strlen($pin1) != 5) {
             $this->writeResponse("Pin must have 5 digits");
         }
@@ -180,7 +186,7 @@ class Boda {
             return;
         }
         //check if old pin matches and then do a reset
-     
+
 
         $res = $this->pini->updatePin($this->mobile, $pin1, "boda");
         if ($res == 1) {
@@ -200,12 +206,13 @@ class Boda {
         $this->ussd_session->update($data, $this->transactionId);
     }
 
-    private function resetPinValidate() {
+    private function resetPinValidate()
+    {
 
         //Lets validate the PIN
 
         $oldpin = $this->requestString;
-       
+
         if (!$this->pini->validatePin($this->mobile, $this->requestString, "boda")) {
             $this->sessionErrorIncorrectPin();
             return;
@@ -221,7 +228,8 @@ class Boda {
         return;
     }
 
-    private function checkaccountststus() {
+    private function checkaccountststus()
+    {
         //echo "nothing works";
         $data['last_usercode'] = 'Accountststus';
         if (!$this->pini->validatePin($this->mobile, $this->requestString, "boda")) {
@@ -235,16 +243,17 @@ class Boda {
         //echo "passed";
         $user = $this->BodaStatus($this->mobile);
         if ($user == '1') {
-            $menu_text = "Dear ".$this->bodaName." Your Account is Active";
+            $menu_text = "Dear " . $this->bodaName . " Your Account is Active";
         } else {
-            $menu_text = "Dear ".$this->bodaName."  Your Account is Not Active";
+            $menu_text = "Dear " . $this->bodaName . "  Your Account is Not Active";
         }
         $this->writeResponse($menu_text, true);
         $this->ussd_session->update($data, $this->transactionId);
         return;
     }
 
-    private function checkaccountstatusrequestpin() {
+    private function checkaccountstatusrequestpin()
+    {
         $data['last_usercode'] = 'AccountPin';
 
         $menu_text = "Enter your PIN";
@@ -253,9 +262,10 @@ class Boda {
     }
 
     //verify pin 
-    private function verifyPin() {
+    private function verifyPin()
+    {
         $data['last_usercode'] = 'initiatedPayment';
-        if (!$this->requestString == '1' || !$this->requestString == '2' ) {
+        if (!$this->requestString == '1' || !$this->requestString == '2') {
             $this->sessionError();
             return;
 
@@ -272,14 +282,17 @@ class Boda {
             $this->makePayment->initPayment($total, "Pay E-Fuel loan");
 
             //response
-            $menu_text = "Dear ".$this->bodaName."  a payment of shs " . $total . " Has been initiated";
+            //$menu_text = "Dear ".$this->bodaName."  a payment of shs " . $total . " Has been initiated";
+
+            $menu_text = "Dear " . $this->bodaName . "  a payment of shs " . $total . " Has been initiated";
             $this->writeResponse($menu_text, true);
         }
         $this->ussd_session->update($data, $this->transactionId);
     }
 
     //check loan amount
-    private function checkLoanAmount() {
+    private function checkLoanAmount()
+    {
         $data['last_usercode'] = 'loanamount';
         $loan = $this->loan->getLatestUnpaidLoan($this->mobile);
         if ($loan != NULL) {
@@ -287,11 +300,11 @@ class Boda {
             $interest = $loan["LoanInterest"];
             $loan_penalty = $loan['loan_penalty'];
             $total = $amount + $interest + $loan_penalty;
-            $response = "Dear ".$this->bodaName."  you have a loan of shs " . $total . "";
+            $response = "Dear " . $this->bodaName . "  you have a loan of shs " . $total . "";
             $response .= "\nSelect Payment Option\n";
             $response .= "1. Mobile Money\n";
             $response .= "2. Mojaloop\n";
-            
+
             $this->writeResponse($response);
         } else {
             $menu_text = "You have no loan";
@@ -302,7 +315,8 @@ class Boda {
 
     //check loan amount
 
-    private function selectfuelpackage() {
+    private function selectfuelpackage()
+    {
         $menu_text = "Select Package\r\n1. Akeendo(5,000)";
 
         $data['last_usercode'] = 'packages';
@@ -310,7 +324,8 @@ class Boda {
         $this->writeResponse($menu_text);
     }
 
-    private function initiatefuel() {
+    private function initiatefuel()
+    {
 
         if (!$this->pini->validatePin($this->mobile, $this->extractDigitsAfterAsterisk($this->requestString), "boda")) {
             $this->sessionErrorIncorrectPin();
@@ -335,15 +350,14 @@ class Boda {
         }
         $data['last_usercode'] = 'generatesecrete';
         $this->ussd_session->update($data, $this->transactionId);
-        $menu_text = "Dear ".$this->bodaName."  your secret code is: " . $secret . " for Fuel of UGX:5,000";
+        $menu_text = "Dear " . $this->bodaName . "  your secret code is: " . $secret . " for Fuel of UGX:5,000";
         $message =  "Your secret Code is" . $secret . " for Fuel of UGX:5,000";
         $this->writeResponse($menu_text, true);
-        //$this->sms->sendsms("E-Fuel", $this->msisdn, "Your secret Code is" . $secret . " for Fuel of UGX:15,000");
-        //$this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
-        
+        $this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
     }
 
-    private function storephone() {
+    private function storephone()
+    {
 
         $data['last_usercode'] = 'requestSecret';
         $data['phone'] = $this->requestString;
@@ -353,7 +367,8 @@ class Boda {
         // $this->advancemonthroute();
     }
 
-    private function resolvepackage() {
+    private function resolvepackage()
+    {
         $amount = 0;
         $package = NULL;
         if ($this->requestString == 1) {
@@ -374,7 +389,8 @@ class Boda {
         $this->writeResponse($menu_text);
     }
 
-    private function validate_request() {
+    private function validate_request()
+    {
         //Lets check for the correct parameters
         //transaction id
         if (!isset($this->transactionId)) {
@@ -402,7 +418,8 @@ class Boda {
     }
 
     // //method to check if the number is activated
-    private function checkIfActivated() {
+    private function checkIfActivated()
+    {
 
         //lets get the user and check if activated
         $user = $this->BodaStatus($this->mobile);
@@ -413,13 +430,14 @@ class Boda {
             return false;
         }
         // user active now
-        
+
         if ($user == '1') {
             return true;
         }
     }
 
-    public function getstageidbymobile() {
+    public function getstageidbymobile()
+    {
         $result = $this->db->likeSelect($this->table_boda, ["stageId"], ["bodaUserPhoneNumber" => $this->mobile]);
 
         if (empty($result)) {
@@ -432,7 +450,8 @@ class Boda {
         }
     }
 
-    private function BodaStatus($mobile) {
+    private function BodaStatus($mobile)
+    {
 
         $result = $this->db->likeSelect($this->table_boda, ["bodaUserStatus"], ["bodaUserPhoneNumber" => $mobile]);
 
@@ -446,7 +465,8 @@ class Boda {
         }
     }
 
-    private function formatMobile($mobile) {
+    private function formatMobile($mobile)
+    {
         $length = strlen($mobile);
         $m = '0';
         //format 1: +256752665888
@@ -460,7 +480,8 @@ class Boda {
         return $mobile;
     }
 
-    private function formatMobileInternational($mobile) {
+    private function formatMobileInternational($mobile)
+    {
         $length = strlen($mobile);
         $m = '+256';
         //format 1: +256752665888
@@ -486,31 +507,33 @@ class Boda {
     // }
     // private function writeResponse($msg, $isend = false) {
     //     $resp_msg = '';
-    
+
     //     if ($isend) {
     //         $resp_msg .= 'END ' . urlencode($msg);
     //     } else {
     //         $resp_msg .= 'CON ' . urlencode($msg);
     //     }
-    
+
     //     echo $resp_msg;
     // }
 
-    function writeResponse($msg, $isend = false) {
+    function writeResponse($msg, $isend = false)
+    {
         $resp_msg = '';
-    
+
         if ($isend) {
             $resp_msg .= 'END ' . $msg;
         } else {
             $resp_msg .= 'CON ' . $msg;
         }
-    
+
         echo $resp_msg;
     }
 
 
-    private function welcome_general($from_activation = true) {
-          
+    private function welcome_general($from_activation = true)
+    {
+
         if ($from_activation == true) {
 
             $data['last_usercode'] = '00';
@@ -538,8 +561,9 @@ class Boda {
 
         $this->writeResponse($response, false);
     }
-   
-    private function BodaIdbymobile($mobile) {
+
+    private function BodaIdbymobile($mobile)
+    {
         $result = $this->db->select($this->table_boda, ["BodaUserId"], ["bodaUserPhoneNumber" => $mobile]);
 
         if (empty($result)) {
@@ -569,30 +593,36 @@ class Boda {
 
 
 
-    private function sessionError() {
+    private function sessionError()
+    {
         $this->writeResponse('Session error, please restart process', true);
     }
 
-    private function welcome() {
+    private function welcome()
+    {
         $this->welcome_general(false);
     }
 
-    private function sessionErrorIncorrectPin() {
+    private function sessionErrorIncorrectPin()
+    {
         $this->writeResponse("Incorrect PIN, please re-enter your PIN");
     }
 
-    private function sessionErrornotactivated() {
+    private function sessionErrornotactivated()
+    {
         $this->writeResponse("Dear Customer, Your account is not Active", TRUE);
     }
 
-    private function sessionErrornotactivatedstage() {
+    private function sessionErrornotactivatedstage()
+    {
         $this->writeResponse("Dear Customer, Your Stage account is not Active", TRUE);
     }
 
-    private function Errorsecretnotcreated() {
+    private function Errorsecretnotcreated()
+    {
         $this->writeResponse("Dear Customer, something wrong happend when creating your secret", TRUE);
     }
-     private function bodabymobile()
+    private function bodabymobile()
     {
         $result = $this->db->select($this->table_boda, null, ["bodaUserPhoneNumber" => $this->mobile]);
         return $result[0];

@@ -73,38 +73,41 @@ class Cursorb
 	private $username = "";
 	private $password = "!Log19tan88";
 	private $ip_address = "";
-	private $host ="localhost";
+	private $host = "localhost";
 	private $db_name = "bodacredit";
 
 
 	function __construct()
-    {
-        $this->ip_address = $_SERVER['REMOTE_ADDR'];
+	{
+		$this->ip_address = $_SERVER['REMOTE_ADDR'];
 
-        if ($this->ip_address == '::1') {
-            $this->ip_address = "";
-            $this->username = "root";
-        } else {
-            $this->username = "code";
-        }
+		if ($this->ip_address == '::1') {
+			$this->ip_address = "";
+			$this->username = "root";
+		} else {
+			$this->username = "root";
+		}
 
-        $this->connect(); // Automatically establish the database connection on object creation
-    }
+		$this->connect(); // Automatically establish the database connection on object creation
+	}
 
 	private function connect()
-    {
-        if ($this->con != null) return true;
-        try {
-            $this->con = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->db_name . ';charset=utf8', $this->username, $this->password);
-			 
-            return true;
-        } catch (PDOException $e) {
-			
-			 //echo $e->getMessage();
-            $this->errors[] = $e->getMessage();
-        }
-        return false;
-    }
+	{
+
+		if ($this->con != null) return true;
+		try {
+			$this->con = new PDO('mysql:host=' . $this->host . ';dbname=' . $this->db_name . ';charset=utf8', $this->username, $this->password);
+
+			return true;
+		} catch (PDOException $e) {
+
+
+			$this->errors[] = $e->getMessage();
+
+			// die("Connection failed: " . $e->getMessage());
+		}
+		return false;
+	}
 
 	// use e.g. like ["!name"=>"Example name"] to match not equal to.
 	public function select($table, $columns = null, $where = null, $order = null, $limit = null, $where_extra = null)

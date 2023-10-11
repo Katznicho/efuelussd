@@ -1,29 +1,21 @@
 <?php
 
- 
-
-//include("process.php");
 include_once 'fuelsystem/checker.php';
-$checker=new checker();
+$checker = new checker();
 
-if($checker->checkbodaexist()==TRUE)
-{
-//    echo "welcome Boda";
-    include("fuelsystem/Boda.php");
-    
-}
-elseif($checker->checkAgentexist()==TRUE)
-{
-    include("fuelsystem/Agent.php"); 
-}
-else
-{
-    
-    //echo "hello";
+
+
+if ($checker->checkbodaexist()) {
+    include_once("fuelsystem/Boda.php");
+} elseif ($checker->checkAgentexist()) {
+    include_once("fuelsystem/Agent.php");
+} else {
+
     writeResponse("Your Not Registered on E-Fuel", true);
 }
 
-function writeResponse($msg, $isend = false) {
+function writeResponse($msg, $isend = false)
+{
     $resp_msg = '';
 
     if ($isend) {
@@ -34,5 +26,3 @@ function writeResponse($msg, $isend = false) {
 
     echo $resp_msg;
 }
-       
-//     writeResponse("Welcome Creditplud Boda Loan",true);
