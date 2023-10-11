@@ -58,7 +58,7 @@ class Boda
         $this->secret = new secret();
         $this->stageid = $this->getstageidbymobile($this->mobile);
         $this->loan = new loanb();
-        // die("into boda constructor");
+
         $this->makePayment = new MakePayments($this->msisdn, $this->mobile);
 
         $this->bodaName = $this->bodabymobile()["bodaUserName"];
@@ -353,7 +353,7 @@ class Boda
         $menu_text = "Dear " . $this->bodaName . "  your secret code is: " . $secret . " for Fuel of UGX:5,000";
         $message =  "Your secret Code is" . $secret . " for Fuel of UGX:5,000";
         $this->writeResponse($menu_text, true);
-        $this->sms->sms_faster($message, $this->sms->formatMobileInternational($this->msisdn), 1);
+        $this->sms->sendSms($message, $this->sms->formatMobileInternational($this->msisdn));
     }
 
     private function storephone()
@@ -480,42 +480,7 @@ class Boda
         return $mobile;
     }
 
-    private function formatMobileInternational($mobile)
-    {
-        $length = strlen($mobile);
-        $m = '+256';
-        //format 1: +256752665888
-        if ($length == 13)
-            return $mobile;
-        elseif ($length == 12) //format 2: 256752665888
-            return "+" . $mobile;
-        elseif ($length == 10) //format 3: 0752665888
-            return $m .= substr($mobile, 1);
-        elseif ($length == 9) //format 4: 752665888
-            return $m .= $mobile;
 
-        return $mobile;
-    }
-
-    // private function writeResponse($msg, $isend = false) {
-    //     $resp_msg = 'responseString=' . urlencode($msg);
-    //     if ($isend)
-    //         $resp_msg .= '&action=end';
-    //     else
-    //         $resp_msg .= '&action=request';
-    //     echo $resp_msg;
-    // }
-    // private function writeResponse($msg, $isend = false) {
-    //     $resp_msg = '';
-
-    //     if ($isend) {
-    //         $resp_msg .= 'END ' . urlencode($msg);
-    //     } else {
-    //         $resp_msg .= 'CON ' . urlencode($msg);
-    //     }
-
-    //     echo $resp_msg;
-    // }
 
     function writeResponse($msg, $isend = false)
     {

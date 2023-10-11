@@ -233,14 +233,8 @@ class Agent
     }
     private function processfuel()
     {
-
-        //  echo $this->requestString;
-        // $res = $this->extractDigitsAfterAsterisk($this->requestString);
-
         $parts = explode('*', $this->requestString);
         $lastPart = end($parts);
-
-
 
         if (!$this->pini->validatePin($this->mobile, $lastPart, "Agent")) {
             $this->sessionErrorIncorrectPin();
@@ -267,7 +261,10 @@ class Agent
         $loanid = $this->loanb->createloan($loan);
         if ($loanid > 0) {
             $menu_text = "Fuel of UGX: 5,000 to " . $boda[0]["bodaUserName"] . "  " . $boda[0]["bodaUserBodaNumber"] . " " . "has been activated";
-            $this->sms->sendsms("E-Fuel ", $this->formatMobileInternational($bodanumber), "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 15,000 with loanId Cb" . $loanid . "payment of UGX: 16,000 is expected before Midnight Thank you");
+            $message = "Dear customer " . $boda[0]["bodaUserName"] . " we have aprroved your fuel loan of UGX: 5,000 with loanId Cb" . $loanid . "payment of UGX: 6,000 is expected before Midnight Thank you";
+
+            $this->sms->sendSms($message, $this->sms->formatMobileInternational($this->msisdn));
+
             $data['last_usercode'] = 'Fuel';
             $this->ussd_session->update($data, $this->transactionId);
             $result = $this->loanb->updatebodastatus($bodanumber);
@@ -276,7 +273,7 @@ class Agent
             $this->writeResponse($menu_text, true);
             return;
         } else {
-            $this->sms->sendsms("E-Fuel", $this->msisdn, "Sorry something went wrong and loan was not aproved");
+            $this->sms->sendSms("Sorry something went wrong and loan was not aproved", $this->formatMobileInternational($this->msisdn));
             $menu_text = "Something went wrong and loan was not aprooved";
             $this->writeResponse($menu_text, true);
             return;
@@ -599,6 +596,3 @@ class Agent
 
 $agent = new Agent();
 $agent->process();
-//$agent->Agentfuelstationidbymobile("0772093837");
-//echo $agent->AgentIdbymobile("0772093837");
-//$agent->process();
